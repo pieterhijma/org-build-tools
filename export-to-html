@@ -1,0 +1,77 @@
+#!/bin/sh
+
+# Copyright 2018 Pieter Hijma
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# This script exports .org files to .html files using Emacs.  Emacs will
+# automatically install the package htmlize to create colored output for source
+# code.  The script below will set the faces of the fonts for colored output.
+
+usage() {
+    echo "Usage: $(basename $0) <org-file> <path/to/html-file>"
+}
+
+
+compute_path() {
+    local path=$1
+    if [ "${path:0:1}" = "/" ]
+    then    
+	echo $path
+    else
+	echo $(pwd)/$path
+    fi
+}
+
+
+export_the_file() {
+    local org_file=$1
+    local html_path=$(compute_path $2)
+
+    emacs --batch --eval "(progn
+     (require 'package)
+     (package-initialize)
+     (unless (package-installed-p 'htmlize)
+       (setq package-archives
+         '((\"melpa\" . \"http://melpa.milkbox.net/packages/\")))
+       (package-refresh-contents)
+       (package-install 'htmlize))
+     (custom-set-faces 
+       '(default                      ((t (:foreground \"#ffffff\" :background \"black\"))))
+       '(font-lock-builtin-face       ((t (:foreground \"dark slate blue\"))))
+       '(font-lock-comment-face       ((t (:foreground \"Firebrick\"))))
+       '(font-lock-constant-face      ((t (:foreground \"dark cyan\"))))
+       '(font-lock-function-name-face ((t (:foreground \"Blue1\"))))
+       '(font-lock-keyword-face       ((t (:foreground \"Purple\"))))
+       '(font-lock-string-face        ((t (:foreground \"VioletRed4\"))))
+       '(font-lock-type-face          ((t (:foreground \"ForestGreen\"))))
+       '(font-lock-variable-name-face ((t (:foreground \"sienna\"))))
+       '(font-lock-warning-face       ((t (:foreground \"red\" :weight bold)))))
+     (setq htmlize-use-rgb-map 'force)
+     (require 'org)
+     (require 'ob)
+     (require 'htmlize)
+     (setq make-backup-files nil)
+     (find-file \"$org_file\")
+     (org-html-export-as-html)
+     (write-file \"$html_path\"))"
+}
+
+if [ $# = 2 ]
+then
+    export_the_file $*
+else
+    usage
+    exit 1
+fi
