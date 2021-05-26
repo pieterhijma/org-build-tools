@@ -44,7 +44,7 @@ export_the_file() {
      (package-initialize)
      (unless (package-installed-p 'htmlize)
        (setq package-archives
-         '((\"melpa\" . \"http://melpa.milkbox.net/packages/\")))
+         '((\"melpa\" . \"http://stable.melpa.org/packages/\")))
        (package-refresh-contents)
        (package-install 'htmlize))
      (custom-set-faces 
